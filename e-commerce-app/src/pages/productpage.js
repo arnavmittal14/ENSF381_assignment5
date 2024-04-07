@@ -3,10 +3,14 @@ import Header from "../components/header";
 import ProductList from "../components/productlist";
 import Cart from "../components/cart";
 import Footer from "../components/footer";
-import productsData from "../data/product";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Productpage() {
   const [cart, setCart] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = location.state ? location.state.isAuth : false;
+  console.log(isAuthenticated);
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -34,6 +38,10 @@ function Productpage() {
     );
     setCart(updatedCart);
   };
+
+  if (!isAuthenticated) {
+    navigate("/login");
+  }
 
   return (
     <div className="product-page">

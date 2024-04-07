@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 
-const SignupForm = ({ switchToLogin }) => {
+const SignupForm = ({ switchToLogin, history }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (
       username !== "" &&
       password !== "" &&
@@ -14,20 +15,39 @@ const SignupForm = ({ switchToLogin }) => {
       email !== ""
     ) {
       if (password !== confirmPassword) {
-        alert("Passwords do not match");
+        setError("Passwords do not match");
       } else {
-        // Handle signup logic here
-        console.log("Signing up with:", username, password, email);
+        try {
+          const response = await fetch("http://127.0.0.1:5000/api/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password, email }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("User registered successfully");
+            switchToLogin();
+          } else {
+            setError(data.error || "Signup failed");
+          }
+        } catch (error) {
+          console.error("Signup error:", error);
+          setError("Signup failed");
+        }
       }
     } else {
-      alert("Please fill in all fields");
+      setError("Please fill in all fields");
     }
   };
 
   return (
     <div>
+      <h2>Signup</h2>
       <div>
-        <h2>Signup</h2>
         <input
           type="text"
           placeholder="Username"
@@ -59,6 +79,7 @@ const SignupForm = ({ switchToLogin }) => {
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <div>
         <button onClick={handleSignup}>Signup</button>
       </div>

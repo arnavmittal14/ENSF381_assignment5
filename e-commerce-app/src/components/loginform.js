@@ -1,15 +1,38 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const LoginForm = ({ switchToSignup }) => {
+const LoginForm = ({ switchToSignup, history }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (username !== "" && password !== "") {
-      // Handle login logic here
-      console.log("Logging in with:", username, password);
+      try {
+        const response = await fetch("http://127.0.0.1:5000/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (response.ok) {
+          console.log("Login successful");
+          navigate("/products", { state: { isAuth: true } });
+        } else {
+          setError(data.error || "Login failed");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        setError("Login failed");
+      }
     } else {
-      alert("Please fill in all fields");
+      setError("Please fill in all fields");
     }
   };
 
@@ -32,6 +55,7 @@ const LoginForm = ({ switchToSignup }) => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <div>
         <button onClick={handleLogin}>Login</button>
       </div>
